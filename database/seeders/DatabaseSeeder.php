@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +14,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Model::unguard();
+        Schema::disableForeignKeyConstraints();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleSeeder::class,
+            // PermissionSeeder::class, // قم بإلغاء التعليق إذا أنشأته
+            FloorSeeder::class,
+            AssessmentItemSeeder::class,
+          
         ]);
+
+        // 2. بيانات تعتمد على ما سبق
+        $this->call([
+            RoomAndBedSeeder::class, // يعتمد على Floors
+        ]);
+        
+        // 4. بيانات الجدولة
+        // $this->call(EmployeeShiftSeeder::class); // قم بإلغاء التعليق إذا أنشأته
+
+        Schema::enableForeignKeyConstraints();
+        Model::reguard();
+        
     }
 }

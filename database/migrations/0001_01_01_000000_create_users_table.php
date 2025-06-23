@@ -11,19 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->comment('اسم المستخدم (يمكن أن يكون اسم الموظف)');
-            $table->string('username')->unique()->comment('اسم الدخول للنظام');
+            $table->string('name');
+            $table->string('username')->unique();
             $table->string('email')->unique();
-            $table->string('password')->comment('كلمة المرور (مشفرة)');
+            $table->timestamp('email_verified_at')->nullable(); // <-- أضف هذا السطر
+            $table->string('password');
             $table->foreignId('role_id')->constrained('roles')->onDelete('restrict');
-            $table->foreignId('employee_id')->nullable()->unique()->constrained('employees')->onDelete('set null')->comment('ربط المستخدم بملف موظف في الموارد البشرية');
+            $table->foreignId('employee_id')->nullable()->unique()->constrained('employees')->onDelete('set null');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });
-    
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
