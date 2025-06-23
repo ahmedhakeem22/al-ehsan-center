@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             // PermissionSeeder::class, // قم بإلغاء التعليق إذا أنشأته
             FloorSeeder::class,
             AssessmentItemSeeder::class,
+            EmployeeAndUserSeeder::class,
+
           
         ]);
 
