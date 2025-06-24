@@ -36,8 +36,8 @@ class EmployeeAndUserSeeder extends Seeder
                 ['username' => 'admin'], // اسم الدخول
                 [
                     'name' => $adminEmployee->full_name,
-                    'email' => 'admin@ridaa.com',
-                    'password' => Hash::make('password'), // كلمة المرور هي: password
+                    'email' => 'admin@admin.com',
+                    'password' => Hash::make('123456'), // كلمة المرور هي: password
                     'role_id' => $roles['admin'], // ربطه بدور 'admin'
                     'employee_id' => $adminEmployee->id,
                     'is_active' => true,

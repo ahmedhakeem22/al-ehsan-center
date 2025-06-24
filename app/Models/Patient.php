@@ -11,11 +11,12 @@ class Patient extends Model
 
     protected $table = 'patients';
 
-    protected $fillable = [
+      protected $fillable = [
         'file_number',
         'full_name',
         'profile_image_path',
         'approximate_age',
+        'gender', 
         'province',
         'arrival_date',
         'condition_on_arrival',
@@ -29,38 +30,43 @@ class Patient extends Model
     ];
 
     
-    public function currentBed()
+   public function currentBed()
     {
         return $this->belongsTo(Bed::class, 'current_bed_id');
     }
 
-  
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
-    
-    public function assessments()
-    {
-        return $this->hasMany(FunctionalAssessmentForm::class, 'patient_id');
-    }
-
-  
     public function media()
     {
         return $this->hasMany(PatientMedia::class, 'patient_id');
     }
 
-  
+    public function assessments()
+    {
+        return $this->hasMany(FunctionalAssessmentForm::class, 'patient_id');
+    }
+
     public function clinicalNotes()
     {
         return $this->hasMany(ClinicalNote::class, 'patient_id');
     }
-    
-  
+
     public function treatmentPlans()
     {
         return $this->hasMany(TreatmentPlan::class, 'patient_id');
+    }
+
+    public function labTestRequests() 
+    {
+        return $this->hasMany(LabTestRequest::class, 'patient_id');
+    }
+
+    public function prescriptions() 
+    {
+        return $this->hasMany(Prescription::class, 'patient_id');
     }
 }

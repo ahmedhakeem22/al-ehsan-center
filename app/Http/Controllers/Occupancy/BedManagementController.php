@@ -11,37 +11,44 @@ use Illuminate\Validation\Rule;
 
 class BedManagementController extends Controller
 {
-    public function index(Request $request)
+     public function index(Request $request)
     {
+        // ابدأ بالاستعلام الأساسي مع العلاقات للـ select (Eager Loading)
         $query = Bed::with(['room.floor', 'patient:id,full_name,file_number']);
 
-        if($request->filled('floor_id')) {
-            $query->whereHas('room', function($q) use ($request) {
+        // تطبيق الفلاتر
+        if ($request->filled('floor_id')) {
+            $query->whereHas('room', function ($q) use ($request) {
                 $q->where('floor_id', $request->floor_id);
             });
         }
-        if($request->filled('room_id')) {
+        if ($request->filled('room_id')) {
             $query->where('room_id', $request->room_id);
         }
-        if($request->filled('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if($request->filled('bed_number')) {
-            $query->where('bed_number', 'like', '%' . $request->bed_number . '%');
+        if ($request->filled('bed_number')) {
+            $query->where('beds.bed_number', 'like', '%' . $request->bed_number . '%'); // تأكد من تحديد اسم الجدول beds.bed_number لتجنب الغموض
         }
 
-        $beds = $query->orderBy(Floor::select('name')->whereColumn('floors.id', 'rooms.floor_id')) // Order by floor name
-                      ->orderBy(Room::select('room_number')->whereColumn('rooms.id', 'beds.room_id')) // Then by room number
-                      ->orderBy('bed_number')
-                      ->paginate(20)->withQueryString();
+        // استخدام Join للفرز
+        // يجب أن نختار الأعمدة التي نحتاجها من beds لتجنب مشاكل الغموض مع الأعمدة المتشابهة في الأسماء
+        // ونضيف الأعمدة التي نريد الفرز بها من الجداول المدمجة
+        $query->select('beds.*') // اختر جميع أعمدة جدول beds
+            ->join('rooms', 'beds.room_id', '=', 'rooms.id')
+            ->join('floors', 'rooms.floor_id', '=', 'floors.id')
+            ->orderBy('floors.name', 'asc')       // الفرز باسم الطابق
+            ->orderBy('rooms.room_number', 'asc') // ثم برقم الغرفة
+            ->orderBy('beds.bed_number', 'asc');  // ثم برقم السرير
+
+        $beds = $query->paginate(20)->withQueryString();
 
         $floors = Floor::orderBy('name')->pluck('name', 'id');
-        // Add rooms for dynamic filtering based on selected floor if needed via JS
         $bedStatuses = ['vacant' => 'Vacant', 'occupied' => 'Occupied', 'reserved' => 'Reserved', 'out_of_service' => 'Out of Service'];
 
         return view('occupancy.beds.index', compact('beds', 'floors', 'bedStatuses'));
     }
-
     public function create()
     {
         $rooms = Room::with('floor')->get()->mapWithKeys(function ($room) {

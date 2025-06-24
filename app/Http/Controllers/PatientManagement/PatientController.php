@@ -60,15 +60,16 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
-            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'approximate_age' => 'nullable|integer|min:0|max:150',
-            'province' => 'nullable|string|max:100',
-            'arrival_date' => 'required|date',
-            'condition_on_arrival' => 'nullable|string',
-            'file_number_manual' => ['nullable', 'string', 'max:50', Rule::unique('patients', 'file_number')],
-        ]);
+       $request->validate([
+        'full_name' => 'required|string|max:255',
+        'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'approximate_age' => 'nullable|integer|min:0|max:150',
+        'gender' => ['nullable', Rule::in(['male', 'female', 'other', 'unknown'])], // إضافة التحقق من صحة النوع
+        'province' => 'nullable|string|max:100',
+        'arrival_date' => 'required|date',
+        'condition_on_arrival' => 'nullable|string',
+        'file_number_manual' => ['nullable', 'string', 'max:50', Rule::unique('patients', 'file_number')],
+    ]);
 
         $data = $request->except(['profile_image', 'file_number_manual']);
         $data['created_by_user_id'] = auth()->id();
@@ -119,16 +120,17 @@ class PatientController extends Controller
 
     public function update(Request $request, Patient $patient)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'approximate_age' => 'nullable|integer|min:0|max:150',
-            'province' => 'nullable|string|max:100',
-            'arrival_date' => 'required|date',
-            'condition_on_arrival' => 'nullable|string',
-            'status' => ['required', Rule::in(['active', 'discharged', 'deceased', 'transferred'])],
-            'file_number' => ['required', 'string', 'max:50', Rule::unique('patients')->ignore($patient->id)],
-        ]);
+       $request->validate([
+        'full_name' => 'required|string|max:255',
+        'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'approximate_age' => 'nullable|integer|min:0|max:150',
+        'gender' => ['nullable', Rule::in(['male', 'female', 'other', 'unknown'])], // إضافة التحقق من صحة النوع
+        'province' => 'nullable|string|max:100',
+        'arrival_date' => 'required|date',
+        'condition_on_arrival' => 'nullable|string',
+        'status' => ['required', Rule::in(['active', 'discharged', 'deceased', 'transferred'])],
+        'file_number' => ['required', 'string', 'max:50', Rule::unique('patients')->ignore($patient->id)],
+    ]);
 
         $data = $request->except('profile_image');
 

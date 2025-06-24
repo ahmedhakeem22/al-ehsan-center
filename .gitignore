@@ -16,6 +16,9 @@
 /public/build
 /public/hot
 /public/storage
+/public/assets
+/public/vendor
+
 /storage/*.key
 /storage/pail
 /vendor
