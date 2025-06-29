@@ -9,9 +9,11 @@ class Employee extends Model
 {
     use HasFactory;
 
-    protected $table = 'employees';
-
+    /**
+     * The attributes that are mass assignable.
+     */
     protected $fillable = [
+        'user_id', // أضفناه هنا
         'full_name',
         'age',
         'phone_number',
@@ -25,27 +27,37 @@ class Employee extends Model
         'profile_picture_path',
     ];
 
+    /**
+     * The attributes that should be cast.
+     */
     protected $casts = [
         'date_of_birth' => 'date',
         'joining_date' => 'date',
         'salary' => 'decimal:2',
     ];
 
-  
+    /**
+     * Get the user account that owns the employee record.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
-        return $this->belongsTo(User::class, 'employee_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-  
+    // ... بقية العلاقات (documents, shifts, attendance) تبقى كما هي ...
     public function documents()
     {
         return $this->hasMany(EmployeeDocument::class, 'employee_id');
     }
 
-    
     public function shifts()
     {
         return $this->hasMany(EmployeeShift::class, 'employee_id');
+    }
+
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class, 'employee_id');
     }
 }
