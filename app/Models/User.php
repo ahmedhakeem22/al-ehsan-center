@@ -6,12 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laragear\WebAuthn\Contracts\WebAuthnAuthenticatable;
-use Laragear\WebAuthn\WebAuthnAuthentication;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements WebAuthnAuthenticatable
+class User extends Authenticatable  
 {
-    use HasApiTokens, HasFactory, Notifiable, WebAuthnAuthentication; // <-- أضف WebAuthnAuthentication
+    use HasApiTokens, HasFactory, Notifiable; 
 
     protected $table = 'users';
 
@@ -23,6 +22,7 @@ class User extends Authenticatable implements WebAuthnAuthenticatable
         'role_id',
         // 'employee_id' is not the standard way. We will link via Employee model.
         'is_active',
+        'device_id', 
     ];
 
     protected $hidden = [
@@ -57,9 +57,5 @@ class User extends Authenticatable implements WebAuthnAuthenticatable
         return $this->hasMany(ClinicalNote::class, 'author_id');
     }
 
-    public function webAuthnKeys()
-{
-    // الاسم الصحيح والجديد هو WebAuthnCredential
-    return $this->morphMany(\Laragear\WebAuthn\Models\WebAuthnCredential::class, 'authenticatable');
-}
+
 }

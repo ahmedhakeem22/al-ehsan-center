@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HR\AttendanceRequestWebController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController; // <<< إضافة هذا
 use App\Http\Controllers\Admin\UserController;
@@ -163,6 +164,10 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/{document}/download', [EmployeeDocumentController::class, 'download'])->name('download');
       Route::delete('/{document}', [EmployeeDocumentController::class, 'destroy'])->name('destroy');
     });
+          Route::get('/attendance-requests', [AttendanceRequestWebController::class, 'index'])->name('attendance-requests.index');
+      Route::get('/attendance-requests/{request}/generate-qr', [AttendanceRequestWebController::class, 'generateQrCode'])->name('attendance-requests.generate-qr');
+
+
     Route::resource('shift-definitions', ShiftDefinitionController::class)->names('shift_definitions');
     Route::get('employee-shifts/calendar', [EmployeeShiftController::class, 'calendarView'])->name('employee_shifts.calendar');
     Route::get('api/employee-shifts', [EmployeeShiftController::class, 'getShiftsApi'])->name('api.employee_shifts.index');
@@ -199,3 +204,4 @@ Route::middleware(['auth'])->group(function () {
 }); // End of main auth middleware group
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/api.php';
