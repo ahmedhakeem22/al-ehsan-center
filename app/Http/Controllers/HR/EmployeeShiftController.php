@@ -9,6 +9,8 @@ use App\Models\ShiftDefinition;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator; // أضف هذا
+use Illuminate\Http\Exceptions\HttpResponseException; // أضف هذا
 
 class EmployeeShiftController extends Controller
 {
@@ -23,45 +25,65 @@ class EmployeeShiftController extends Controller
     }
 
     // API endpoint to fetch shifts for the calendar
+    
     public function getShiftsApi(Request $request)
     {
-        $request->validate([
-            'start' => 'required|date_format:Y-m-d',
-            'end' => 'required|date_format:Y-m-d|after_or_equal:start',
+        // استخدم Validator يدويًا للتحكم الكامل
+        $validator = \Validator::make($request->all(), [
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
             'employee_id' => 'nullable|exists:employees,id',
         ]);
 
-        $query = EmployeeShift::with(['employee:id,full_name', 'definition:id,name,color_code,start_time,end_time'])
-                              ->whereBetween('shift_date', [$request->start, $request->end]);
+        if ($validator->fails()) {
+            // استدعاء الدالة التي أنشأناها أو وضع الكود مباشرة هنا
+            // هذا سيضمن إرجاع خطأ 422 JSON بدلاً من إعادة التوجيه 302
+            $this->failedValidation($validator); 
+        }
 
-        if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->employee_id);
+        $validated = $validator->validated();
+
+        $startDate = Carbon::parse($validated['start'])->format('Y-m-d');
+        $endDate = Carbon::parse($validated['end'])->format('Y-m-d');
+
+        $query = EmployeeShift::with(['employee:id,full_name', 'definition:id,name,color_code,start_time,end_time'])
+                            ->whereBetween('shift_date', [$startDate, $endDate]);
+
+        if (!empty($validated['employee_id'])) {
+            $query->where('employee_id', $validated['employee_id']);
         }
 
         $shifts = $query->get()->map(function ($shift) {
-            // Format for FullCalendar
-            $startDateTime = Carbon::parse($shift->shift_date . ' ' . $shift->definition->start_time);
-            $endDateTime = Carbon::parse($shift->shift_date . ' ' . $shift->definition->end_time);
-            if ($endDateTime <= $startDateTime) { // Handle overnight shifts
-                $endDateTime->addDay();
-            }
+            // ... (نفس الكود السابق)
+                 $shiftDateObject = Carbon::parse($shift->shift_date);
 
-            return [
-                'id' => $shift->id,
-                'title' => $shift->employee->full_name . ' - ' . $shift->definition->name,
-                'start' => $startDateTime->toIso8601String(),
-                'end' => $endDateTime->toIso8601String(),
-                'backgroundColor' => $shift->definition->color_code,
-                'borderColor' => $shift->definition->color_code,
-                'extendedProps' => [
-                    'employee_id' => $shift->employee_id,
-                    'shift_definition_id' => $shift->shift_definition_id,
-                    'notes' => $shift->notes,
-                ]
-            ];
-        });
-        return response()->json($shifts);
-    }
+        // 2. قم بدمج التاريخ فقط مع الوقت
+        $startDateTime = Carbon::parse($shiftDateObject->toDateString() . ' ' . $shift->definition->start_time);
+        $endDateTime = Carbon::parse($shiftDateObject->toDateString() . ' ' . $shift->definition->end_time);
+        
+        // ----------------------------------------
+
+        if ($endDateTime <= $startDateTime) { // Handle overnight shifts
+            $endDateTime->addDay();
+        }
+
+        return [
+            'id' => $shift->id,
+            'title' => $shift->employee->full_name . ' - ' . $shift->definition->name,
+            'start' => $startDateTime->toIso8601String(),
+            'end' => $endDateTime->toIso8601String(),
+            'backgroundColor' => $shift->definition->color_code,
+            'borderColor' => $shift->definition->color_code,
+            'extendedProps' => [
+                'employee_id' => $shift->employee_id,
+                'shift_definition_id' => $shift->shift_definition_id,
+                'notes' => $shift->notes,
+            ]
+        ];
+    });
+
+    return response()->json($shifts);
+}
 
     // CRUD operations (can be modal-driven from calendar or separate pages)
     public function index(Request $request) // List view for shifts
@@ -88,6 +110,19 @@ class EmployeeShiftController extends Controller
         return view('hr.employee_shifts.index', compact('employeeShifts', 'employees', 'shiftDefinitions'));
     }
 
+      public function create(Request $request)
+    {
+        $employees = Employee::orderBy('full_name')->pluck('full_name', 'id');
+        $shiftDefinitions = ShiftDefinition::orderBy('name')->get();
+        return view('hr.employee_shifts.create', compact('employees', 'shiftDefinitions'));
+    }
+
+    public function edit(EmployeeShift $employeeShift)
+    {
+        $employees = Employee::orderBy('full_name')->pluck('full_name', 'id');
+        $shiftDefinitions = ShiftDefinition::orderBy('name')->get();
+        return view('hr.employee_shifts.edit', compact('employeeShift', 'employees', 'shiftDefinitions'));
+    }
 
     public function store(Request $request) // Can be called via AJAX from calendar
     {
@@ -187,6 +222,15 @@ class EmployeeShiftController extends Controller
             ]);
         }
         return redirect()->route('hr.employee_shifts.index')->with('success', 'Shift updated successfully.');
+    }
+
+      protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'The given data was invalid.',
+            'errors' => $validator->errors()
+        ], 422));
     }
 
     public function destroy(Request $request, EmployeeShift $employeeShift) // Can be called via AJAX

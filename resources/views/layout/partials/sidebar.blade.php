@@ -31,82 +31,108 @@
                 <li class="submenu">
                     <a href="javascript:;" class="{{ Request::is('occupancy*') ? 'active subdrop' : '' }}">
                         <span class="menu-side">
-                            <i class="fas fa-hospital-user" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
+                            <i class="fas fa-hospital-user"
+                                style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
                         </span>
                         <span>إدارة الإشغال</span> <span class="menu-arrow"></span>
                     </a>
                     <ul style="{{ Request::is('occupancy*') ? 'display: block;' : 'display: none;' }}">
                         <li>
                             <a class="{{ Request::routeIs('occupancy.dashboard.index') ? 'active' : '' }}"
-                               href="{{ route('occupancy.dashboard.index') }}">لوحة تحكم الإشغال</a>
+                                href="{{ route('occupancy.dashboard.index') }}">لوحة تحكم الإشغال</a>
                         </li>
                         <li>
                             <a class="{{ Request::routeIs('occupancy.beds.index') ? 'active' : '' }}"
-                               href="{{ route('occupancy.beds.index') }}">إدارة الأسرة</a>
+                                href="{{ route('occupancy.beds.index') }}">إدارة الأسرة</a>
                         </li>
                         <li>
                             <a class="{{ Request::routeIs('occupancy.beds.create') ? 'active' : '' }}"
-                               href="{{ route('occupancy.beds.create') }}">إضافة سرير جديد</a>
+                                href="{{ route('occupancy.beds.create') }}">إضافة سرير جديد</a>
                         </li>
                     </ul>
                 </li>
 
-                {{-- ============================================= --}}
-                {{--        قسم الموارد البشرية (HR Section)        --}}
-                {{-- ============================================= --}}
-                <li class="menu-title">الموارد البشرية</li>
+            {{-- ============================================= --}}
+{{--        قسم الموارد البشرية (HR Section)        --}}
+{{-- ============================================= --}}
+<li class="menu-title">الموارد البشرية</li>
 
-                <li class="submenu">
-                    {{-- The parent link should be active if any of its children routes match --}}
-                    <a href="javascript:;"
-                        class="{{ Request::is('hr/employees*') || Request::is('hr/employee-shifts*') || Request::is('hr/shift-definitions*') || Request::is('hr/attendance*') ? 'active subdrop' : '' }}">
-                        <span class="menu-side">
-                             <i class="fas fa-users" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
-                        </span>
-                        <span>الموظفون</span> <span class="menu-arrow"></span>
-                    </a>
-                    <ul style="{{ Request::is('hr/employees*') ? 'display: block;' : 'display: none;' }}">
-                        <li>
-                            {{-- Check if the route is index, create, edit, or show for an employee --}}
-                            <a class="{{ Request::is('hr/employees*') ? 'active' : '' }}"
-                               href="{{ route('hr.employees.index') }}">قائمة الموظفين</a>
-                        </li>
-                        <li>
-                            <a class="{{ Request::routeIs('hr.employees.create') ? 'active' : '' }}"
-                               href="{{ route('hr.employees.create') }}">إضافة موظف جديد</a>
-                        </li>
-                        <li>
-                                <a class="{{ Request::is('hr/attendance-requests*') ? 'active' : '' }}"
-                                   href="{{ route('hr.attendance-requests.index') }}"> طلبات الحضور</a>
-                            </li>
-                    </ul>
-                </li>
+{{-- قائمة الموظفين --}}
+<li class="submenu">
+    <a href="javascript:;"
+        class="{{ Request::is('hr/employees*') || Request::is('hr/attendance-requests*') ? 'active subdrop' : '' }}">
+        <span class="menu-side">
+            <i class="fas fa-users" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
+        </span>
+        <span>الموظفون</span> <span class="menu-arrow"></span>
+    </a>
+    <ul
+        style="{{ Request::is('hr/employees*') || Request::is('hr/attendance-requests*') ? 'display: block;' : 'display: none;' }}">
+        <li>
+            <a class="{{ Request::routeIs('hr.employees.index') || Request::routeIs('hr.employees.show') || Request::routeIs('hr.employees.edit') ? 'active' : '' }}"
+                href="{{ route('hr.employees.index') }}">قائمة الموظفين</a>
+        </li>
+        <li>
+            <a class="{{ Request::routeIs('hr.employees.create') ? 'active' : '' }}"
+                href="{{ route('hr.employees.create') }}">إضافة موظف جديد</a>
+        </li>
+        
+    </ul>
+</li>
 
-                <li class="submenu">
-                    <a href="javascript:;"
-                        class="{{ Request::is('hr/employee-shifts*') || Request::is('hr/shift-definitions*') ? 'active subdrop' : '' }}">
-                        <span class="menu-side">
-                            <i class="fas fa-calendar-alt" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
-                        </span>
-                        <span>المناوبات</span> <span class="menu-arrow"></span>
-                    </a>
-                    <ul style="{{ Request::is('hr/employee-shifts*') || Request::is('hr/shift-definitions*') ? 'display: block;' : 'display: none;' }}">
-                        <li>
-                            <a class="{{ Request::is('hr/employee-shifts/calendar') ? 'active' : '' }}"
-                               href="{{ route('hr.employee_shifts.calendar') }}">تقويم المناوبات</a>
-                        </li>
-                        <li>
-                            <a class="{{ Request::is('hr/employee-shifts') ? 'active' : '' }}"
-                               href="{{ route('hr.employee_shifts.index') }}">قائمة المناوبات</a>
-                        </li>
-                         <li>
+{{-- قائمة المناوبات --}}
+<li class="submenu">
+    <a href="javascript:;"
+        class="{{ Request::is('hr/employee-shifts*') || Request::is('hr/shift-definitions*') ? 'active subdrop' : '' }}">
+        <span class="menu-side">
+            <i class="fas fa-calendar-alt"
+                style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
+        </span>
+        <span>المناوبات</span> <span class="menu-arrow"></span>
+    </a>
+    <ul
+        style="{{ Request::is('hr/employee-shifts*') || Request::is('hr/shift-definitions*') ? 'display: block;' : 'display: none;' }}">
+        <li>
+            <a class="{{ Request::is('hr/employee-shifts/calendar') ? 'active' : '' }}"
+                href="{{ route('hr.employee_shifts.calendar') }}">تقويم المناوبات</a>
+        </li>
+        <li>
+            <a class="{{ Request::is('hr/employee-shifts') && !Request::is('hr/employee-shifts/calendar') ? 'active' : '' }}"
+                href="{{ route('hr.employee_shifts.index') }}">جدول المناوبات</a>
+        </li>
+          <li>
                             <a class="{{ Request::is('hr/shift-definitions*') ? 'active' : '' }}"
-                               href="{{ route('hr.shift_definitions.index') }}">إعدادات المناوبات</a>
+                                href="{{ route('hr.shift_definitions.index') }}">إعدادات المناوبات</a>
                         </li>
-                    </ul>
-                </li>
+        <li>
+            <a class="{{ Request::routeIs('hr.shift_definitions.index') || Request::routeIs('hr.shift_definitions.edit') ? 'active' : '' }}"
+                href="{{ route('hr.shift_definitions.index') }}">تعريفات المناوبات</a>
+        </li>
+    </ul>
+</li>
 
-              
+{{-- الحضور والانصراف --}}
+<li class="submenu">
+    <a href="javascript:;" class="{{ Request::is('hr/attendance-reports*') ? 'active subdrop' : '' }}">
+        <i class="fas fa-clipboard-list"></i> <span> الحضور والانصراف</span> <span
+            class="menu-arrow"></span></a>
+    <ul style="{{ Request::is('hr/attendance-reports*') ? 'display: block;' : 'display: none;' }}">
+      <li>
+            <a class="{{ Request::is('hr/attendance-requests*') ? 'active' : '' }}"
+                href="{{ route('hr.attendance-requests.index') }}"> طلبات الحضور</a>
+        </li>
+      
+      <li>
+            <a href="{{ route('hr.attendance-reports.dashboard') }}"
+                class="{{ Request::routeIs('hr.attendance-reports.dashboard') ? 'active' : '' }}">لوحة المعلومات</a>
+        </li>
+        <li>
+            <a href="{{ route('hr.attendance-reports.index') }}"
+                class="{{ Request::routeIs('hr.attendance-reports.index') ? 'active' : '' }}">التقرير
+                الشامل</a>
+        </li>
+    </ul>
+</li>
 
                 {{-- ============================================= --}}
                 {{--        قسم إدارة النظام (Admin Section)      --}}
@@ -114,21 +140,21 @@
                 <li class="menu-title">إدارة النظام</li>
 
                 <li class="submenu">
-                    <a href="javascript:;"
-                        class="{{ Request::is('admin/users*') ? 'active subdrop' : '' }}">
+                    <a href="javascript:;" class="{{ Request::is('admin/users*') ? 'active subdrop' : '' }}">
                         <span class="menu-side">
-                            <i class="fas fa-user-shield" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
+                            <i class="fas fa-user-shield"
+                                style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
                         </span>
                         <span>إدارة المستخدمين</span> <span class="menu-arrow"></span>
                     </a>
                     <ul style="{{ Request::is('admin/users*') ? 'display: block;' : 'display: none;' }}">
                         <li>
                             <a class="{{ Request::is('admin/users*') && !Request::routeIs('admin.users.create') ? 'active' : '' }}"
-                               href="{{ route('admin.users.index') }}">قائمة المستخدمين</a>
+                                href="{{ route('admin.users.index') }}">قائمة المستخدمين</a>
                         </li>
                         <li>
                             <a class="{{ Request::routeIs('admin.users.create') ? 'active' : '' }}"
-                               href="{{ route('admin.users.create') }}">إضافة مستخدم جديد</a>
+                                href="{{ route('admin.users.create') }}">إضافة مستخدم جديد</a>
                         </li>
                     </ul>
                 </li>
@@ -144,54 +170,24 @@
                     <ul style="{{ Request::is('admin/settings*') ? 'display: block;' : 'display: none;' }}">
                         <li>
                             <a class="{{ Request::routeIs('admin.settings.index') ? 'active' : '' }}"
-                               href="{{ route('admin.settings.index') }}">نظرة عامة على الإعدادات</a>
+                                href="{{ route('admin.settings.index') }}">نظرة عامة على الإعدادات</a>
                         </li>
                         <li>
                             <a class="{{ Request::is('admin/settings/floors*') ? 'active' : '' }}"
-                               href="{{ route('admin.settings.floors.index') }}">إدارة الطوابق</a>
+                                href="{{ route('admin.settings.floors.index') }}">إدارة الطوابق</a>
                         </li>
                         <li>
                             <a class="{{ Request::is('admin/settings/rooms*') ? 'active' : '' }}"
-                               href="{{ route('admin.settings.rooms.index') }}">إدارة الغرف</a>
+                                href="{{ route('admin.settings.rooms.index') }}">إدارة الغرف</a>
                         </li>
                         <li>
                             <a class="{{ Request::is('admin/settings/labtests*') ? 'active' : '' }}"
-                               href="{{ route('admin.settings.labtests.index') }}">إدارة الفحوصات المخبرية</a>
+                                href="{{ route('admin.settings.labtests.index') }}">إدارة الفحوصات المخبرية</a>
                         </li>
                     </ul>
                 </li>
 
-                {{-- ============================================= --}}
-                {{--     رابط خاص بالموظف لتسجيل الحضور         --}}
-                {{-- ============================================= --}}
-                @auth
-                  @if(Auth::user()->employeeRecord)
-    <li class="submenu">
-        {{-- الشرط لجعل القائمة المنسدلة نشطة --}}
-        {{-- <a href="javascript:;" class="{{ Request::is('employee/attendance*') ? 'active subdrop' : '' }}">
-            <span class="menu-side">
-                <i class="fas fa-user-clock" style="color: #6c757d; font-size: 1.2rem; margin-right: 5px;"></i>
-            </span>
-            <span>خدماتي</span> <span class="menu-arrow"></span>
-        </a>
-        <ul style="{{ Request::is('employee/attendance*') ? 'display: block;' : 'display: none;' }}">
-            <li>
-                <a class="{{ Request::routeIs('employee.attendance.index') ? 'active' : '' }}"
-                    href="{{ route('employee.attendance.index') }}">الحضور و الإنصراف</a>
-            </li>
-            <li>
-                <a class="{{ Request::routeIs('employee.attendance.history') ? 'active' : '' }}"
-                    href="{{ route('employee.attendance.history') }}">سجل الحضور</a>
-            </li>
-            <li> --}}
-                {{-- هذا هو الرابط الجديد لصفحة تسجيل البصمة --}}
-                {{-- <a class="{{ Request::routeIs('employee.fingerprint.register.form') ? 'active' : '' }}"
-                    href="{{ route('employee.fingerprint.register.form') }}">إعدادات البصمة</a>
-            </li>
-        </ul>
-    </li> --}}
-@endif
-                @endauth
+
 
 
                 {{-- Multi Level Example (يمكنك إزالته إذا لم تكن بحاجة إليه) --}}
@@ -221,8 +217,10 @@
                 </li>
             </ul>
             <div class="logout-btn">
-                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><span class="menu-side"><img
-                            src="{{ URL::asset('/assets/img/icons/logout.svg') }}" alt=""></span>
+                <a href="{{ route('logout') }}"
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><span
+                        class="menu-side"><img src="{{ URL::asset('/assets/img/icons/logout.svg') }}"
+                            alt=""></span>
                     <span>تسجيل الخروج</span></a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf

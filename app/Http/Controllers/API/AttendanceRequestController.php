@@ -36,7 +36,7 @@ class AttendanceRequestController extends Controller
     }
     
     // Called by Flutter app after scanning QR code
-    public function verifyQrCodeAndCheckIn(Request $request, $token)
+ public function verifyQrCodeAndCheckIn(Request $request, $token)
     {
         $attendanceRequest = AttendanceRequest::where('token', $token)
             ->where('status', 'pending')
@@ -44,7 +44,9 @@ class AttendanceRequestController extends Controller
             ->first();
 
         if (!$attendanceRequest) {
-            return response()->json(['message' => 'رمز QR غير صالح أو منتهي الصلاحية.'], 404);
+            // ملاحظة: الردود التي تفشل (مثل 404) يتم معالجتها بشكل صحيح في فلاتر
+            // لأن ApiService يقرأ 'message' مباشرة.
+            return response()->json(['success' => false, 'message' => 'رمز QR غير صالح أو منتهي الصلاحية.'], 404);
         }
 
         $employee = $attendanceRequest->employee;
@@ -53,7 +55,7 @@ class AttendanceRequestController extends Controller
              $todayAttendance = $employee->attendance()->whereDate('check_in_time', Carbon::today())->first();
              if ($todayAttendance) {
                 $attendanceRequest->update(['status' => 'expired']);
-                return response()->json(['message' => 'لقد قمت بتسجيل الحضور لهذا اليوم بالفعل.'], 409);
+                return response()->json(['success' => false, 'message' => 'لقد قمت بتسجيل الحضور لهذا اليوم بالفعل.'], 409);
              }
              Attendance::create([
                 'employee_id' => $employee->id,
@@ -67,7 +69,7 @@ class AttendanceRequestController extends Controller
             $attendance = $employee->attendance()->whereDate('check_in_time', Carbon::today())->whereNull('check_out_time')->first();
             if (!$attendance) {
                 $attendanceRequest->update(['status' => 'expired']);
-                return response()->json(['message' => 'لم يتم العثور على سجل حضور مفتوح لهذا اليوم.'], 404);
+                return response()->json(['success' => false, 'message' => 'لم يتم العثور على سجل حضور مفتوح لهذا اليوم.'], 404);
             }
             $attendance->update([
                 'check_out_time' => now(),

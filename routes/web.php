@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HR\AttendanceController;
 use App\Http\Controllers\HR\AttendanceRequestWebController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController; // <<< إضافة هذا
@@ -154,7 +155,7 @@ Route::middleware(['auth'])->group(function () {
 
 
   // HR Routes
-  Route::middleware(['auth', 'admin']) // Or a specific HR role middleware
+  Route::middleware(['auth']) // Or a specific HR role middleware
       ->prefix('hr')->name('hr.')->group(function () {
     Route::resource('employees', EmployeeController::class);
     Route::name('documents.')->prefix('employees/{employee}/documents')->group(function () {
@@ -164,14 +165,19 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/{document}/download', [EmployeeDocumentController::class, 'download'])->name('download');
       Route::delete('/{document}', [EmployeeDocumentController::class, 'destroy'])->name('destroy');
     });
-          Route::get('/attendance-requests', [AttendanceRequestWebController::class, 'index'])->name('attendance-requests.index');
+      Route::get('/attendance-requests', [AttendanceRequestWebController::class, 'index'])->name('attendance-requests.index');
       Route::get('/attendance-requests/{request}/generate-qr', [AttendanceRequestWebController::class, 'generateQrCode'])->name('attendance-requests.generate-qr');
-
+   // Attendance Management Routes
+  Route::get('attendance-reports/dashboard', [App\Http\Controllers\HR\AttendanceReportController::class, 'dashboard'])->name('attendance-reports.dashboard');
+Route::get('attendance-reports', [App\Http\Controllers\HR\AttendanceReportController::class, 'index'])->name('attendance-reports.index');
+Route::get('employees/{employee}/attendance-report', [App\Http\Controllers\HR\AttendanceReportController::class, 'show'])->name('employees.attendance-report');
 
     Route::resource('shift-definitions', ShiftDefinitionController::class)->names('shift_definitions');
     Route::get('employee-shifts/calendar', [EmployeeShiftController::class, 'calendarView'])->name('employee_shifts.calendar');
     Route::get('api/employee-shifts', [EmployeeShiftController::class, 'getShiftsApi'])->name('api.employee_shifts.index');
     Route::get('employee-shifts', [EmployeeShiftController::class, 'index'])->name('employee_shifts.index');
+    Route::get('employee-shifts/create', [EmployeeShiftController::class, 'create'])->name('employee_shifts.create');
+  Route::get('employee-shifts/{employeeShift}/edit', [EmployeeShiftController::class, 'edit'])->name('employee_shifts.edit');
     Route::post('employee-shifts', [EmployeeShiftController::class, 'store'])->name('employee_shifts.store');
     Route::put('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'update'])->name('employee_shifts.update');
     Route::delete('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'destroy'])->name('employee_shifts.destroy');
@@ -204,4 +210,3 @@ Route::middleware(['auth'])->group(function () {
 }); // End of main auth middleware group
 
 require __DIR__ . '/auth.php';
-require __DIR__ . '/api.php';
