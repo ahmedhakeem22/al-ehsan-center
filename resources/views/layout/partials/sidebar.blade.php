@@ -212,6 +212,42 @@
                     </ul>
                 </li>
 
+
+                {{-- المختبر --}}
+<li class="submenu">
+    {{-- 
+        التحقق من الرابط لجعل القائمة مفتوحة ونشطة
+        'lab*' تطابق أي رابط يبدأ بـ /lab/
+    --}}
+    <a href="javascript:;" class="{{ Request::is('lab*') ? 'active subdrop' : '' }}">
+        <i class="fas fa-vial"></i> <span> المختبر</span> <span class="menu-arrow"></span>
+    </a>
+    {{-- 
+        إظهار القائمة الفرعية إذا كان المستخدم في أي صفحة تابعة للمختبر
+    --}}
+    <ul style="{{ Request::is('lab*') ? 'display: block;' : 'display: none;' }}">
+        <li>
+            {{-- 
+                التحقق من اسم المسار (Route) لإظهار الحالة النشطة
+                'lab.results.*' تطابق صفحة القائمة وصفحة إدخال النتائج
+            --}}
+            <a href="{{ route('lab.results.index') }}"
+                class="{{ Request::routeIs('lab.results.*') ? 'active' : '' }}">
+                إدخال النتائج
+            </a>
+        </li>
+        <li>
+            {{-- 
+                'lab.available_tests.*' تطابق قائمة الفحوصات وصفحات الإضافة والتعديل
+            --}}
+            <a href="{{ route('lab.available_tests.index') }}"
+                class="{{ Request::routeIs('lab.available_tests.*') ? 'active' : '' }}">
+                الفحوصات المتاحة
+            </a>
+        </li>
+    </ul>
+</li>
+
                 {{-- Multi Level Example (يمكنك إزالته إذا لم تكن بحاجة إليه) --}}
                 <li class="submenu">
                     <a href="javascript:void(0);"><i class="fa fa-share-alt"></i> <span>Multi Level</span> <span
