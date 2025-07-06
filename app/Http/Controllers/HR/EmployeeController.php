@@ -61,7 +61,7 @@ class EmployeeController extends Controller
             'create_new_user' => 'sometimes|boolean',
             'username' => 'required_if:create_new_user,true|nullable|string|max:255|unique:users,username',
             'email' => 'required_if:create_new_user,true|nullable|string|email|max:255|unique:users,email',
-            'password' => 'required_if:create_new_user,true|nullable|string|min:8|confirmed',
+            'password' => 'required_if:create_new_user,true|nullable|confirmed',
             'role_id' => 'required_if:create_new_user,true|nullable|exists:roles,id',
         ]);
 
