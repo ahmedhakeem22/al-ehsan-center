@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Clinical;
 
+use App\Enums\ClinicalNoteTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\ClinicalNote;
 use App\Models\User; // To get current user role
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ClinicalNoteController extends Controller
 {
@@ -32,56 +34,40 @@ class ClinicalNoteController extends Controller
         return view('clinical.notes.index', compact('patient', 'notes', 'authorRoles', 'noteTypes'));
     }
 
-    public function create(Patient $patient)
+   public function create(Patient $patient)
     {
-        // Determine available note types based on user role (example)
-        $user = Auth::user();
-        $allowedNoteTypes = [];
-        if ($user->role->name === 'Doctor' || $user->role->name === 'Psychologist') {
-            $allowedNoteTypes = [
-                'doctor_recommendation' => 'Doctor Recommendation',
-                'psychologist_note' => 'Psychologist Note',
-                'daily_visit_note' => 'Daily Visit Note'
-            ];
-        } elseif ($user->role->name === 'Nurse') {
-             $allowedNoteTypes = ['nurse_observation' => 'Nurse Observation'];
-        } else { // Admin or other roles might have all types or specific ones
-             $allowedNoteTypes = [
-                'doctor_recommendation' => 'Doctor Recommendation',
-                'nurse_observation' => 'Nurse Observation',
-                'psychologist_note' => 'Psychologist Note',
-                'daily_visit_note' => 'Daily Visit Note'
-            ];
-        }
+        // Optional: Authorization check
+        // Gate::authorize('create-clinical-note', $patient);
 
+        // Get the labels from the Enum as an associative array ['value' => 'label']
+        // This is the correct way to populate the dropdown.
+        $allowedNoteTypes = ClinicalNoteTypeEnum::labels();
 
         return view('clinical.notes.create', compact('patient', 'allowedNoteTypes'));
     }
 
     public function store(Request $request, Patient $patient)
     {
-        $user = Auth::user();
-        $request->validate([
-            'note_type' => 'required|string|in:doctor_recommendation,nurse_observation,psychologist_note,daily_visit_note',
-            'content' => 'required|string',
-            // 'related_to_note_id' => 'nullable|exists:clinical_notes,id', // For replies
+        // Optional: Authorization check
+        // Gate::authorize('create-clinical-note', $patient);
+
+        $validatedData = $request->validate([
+            'note_type' => ['required', Rule::enum(ClinicalNoteTypeEnum::class)],
+            'content' => 'required|string|min:10',
         ]);
 
-        $authorRole = strtolower($user->role->name); // Simplified, map to 'doctor', 'nurse', etc. if role names differ
-
-        ClinicalNote::create([
-            'patient_id' => $patient->id,
-            'author_id' => $user->id,
-            'author_role' => $authorRole,
-            'note_type' => $request->note_type,
-            'content' => $request->content,
-            // 'related_to_note_id' => $request->related_to_note_id,
+        // Create the note using the relationship
+        $patient->clinicalNotes()->create([
+            'author_id' => auth()->id(),
+            // Assuming user role is stored in a 'name' attribute of a 'role' relationship. Adjust if needed.
+            'author_role' => strtolower(auth()->user()->role->name ?? 'user'),
+            'note_type' => $validatedData['note_type'],
+            'content' => $validatedData['content'],
         ]);
 
-        // Add Notification logic here if needed
-
-        return redirect()->route('clinical.notes.index', $patient->id)
-                         ->with('success', 'Clinical note added successfully.');
+        // Redirect back to the patient profile, directly to the clinical notes tab
+        return redirect()->route('patient_management.patients.show', [$patient->id, '#pat_clinical_notes'])
+                         ->with('success', 'تمت إضافة الملاحظة السريرية بنجاح.');
     }
 
     public function show(Patient $patient, ClinicalNote $note)
@@ -93,56 +79,41 @@ class ClinicalNoteController extends Controller
         return view('clinical.notes.show', compact('patient', 'note'));
     }
 
-    public function edit(Patient $patient, ClinicalNote $note)
+ public function edit(Patient $patient, ClinicalNote $note)
     {
-        if ($note->patient_id !== $patient->id || $note->author_id !== auth()->id()) {
-            // Or use a Policy: $this->authorize('update', $note);
-            return redirect()->route('clinical.notes.index', $patient->id)
-                             ->with('error', 'You are not authorized to edit this note.');
+        // Ensure the note belongs to the patient to prevent unauthorized access
+        if ($note->patient_id !== $patient->id) {
+            abort(404);
         }
 
-        $user = Auth::user();
-        $allowedNoteTypes = []; // Define as in create()
-         if ($user->role->name === 'Doctor' || $user->role->name === 'Psychologist') {
-            $allowedNoteTypes = [
-                'doctor_recommendation' => 'Doctor Recommendation',
-                'psychologist_note' => 'Psychologist Note',
-                'daily_visit_note' => 'Daily Visit Note'
-            ];
-        } elseif ($user->role->name === 'Nurse') {
-             $allowedNoteTypes = ['nurse_observation' => 'Nurse Observation'];
-        } else {
-             $allowedNoteTypes = [
-                'doctor_recommendation' => 'Doctor Recommendation',
-                'nurse_observation' => 'Nurse Observation',
-                'psychologist_note' => 'Psychologist Note',
-                'daily_visit_note' => 'Daily Visit Note'
-            ];
-        }
+        // Optional: Authorization check
+        // Gate::authorize('update', $note);
+
+        // Get the labels from the Enum as an associative array ['value' => 'label']
+        $allowedNoteTypes = ClinicalNoteTypeEnum::labels();
 
         return view('clinical.notes.edit', compact('patient', 'note', 'allowedNoteTypes'));
     }
 
-    public function update(Request $request, Patient $patient, ClinicalNote $note)
+  public function update(Request $request, Patient $patient, ClinicalNote $note)
     {
-        if ($note->patient_id !== $patient->id || $note->author_id !== auth()->id()) {
-            // $this->authorize('update', $note);
-             return redirect()->route('clinical.notes.index', $patient->id)
-                             ->with('error', 'You are not authorized to update this note.');
+        // Ensure the note belongs to the patient
+        if ($note->patient_id !== $patient->id) {
+            abort(404);
         }
 
-        $request->validate([
-            'note_type' => 'required|string|in:doctor_recommendation,nurse_observation,psychologist_note,daily_visit_note',
-            'content' => 'required|string',
+        // Optional: Authorization check
+        // Gate::authorize('update', $note);
+
+        $validatedData = $request->validate([
+            'note_type' => ['required', Rule::enum(ClinicalNoteTypeEnum::class)],
+            'content' => 'required|string|min:10',
         ]);
 
-        $note->update([
-            'note_type' => $request->note_type,
-            'content' => $request->content,
-        ]);
+        $note->update($validatedData);
 
         return redirect()->route('clinical.notes.show', [$patient->id, $note->id])
-                         ->with('success', 'Clinical note updated successfully.');
+                         ->with('success', 'تم تحديث الملاحظة بنجاح.');
     }
 
     public function destroy(Patient $patient, ClinicalNote $note)

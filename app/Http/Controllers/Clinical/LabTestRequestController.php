@@ -51,7 +51,7 @@ class LabTestRequestController extends Controller
     {
         // $this->authorize('create', LabTestRequest::class);
         $request->validate([
-            'request_date' => 'required|date_format:Y-m-d H:i:s',
+            'request_date' => 'required|date',
             'status' => ['required', Rule::in(['pending_sample', 'sample_collected', 'processing', 'cancelled'])],
             'notes_from_doctor' => 'nullable|string',
             'requested_tests' => 'required|array|min:1',
@@ -120,7 +120,7 @@ class LabTestRequestController extends Controller
         }
 
         $request->validate([
-            'request_date' => 'required|date_format:Y-m-d H:i:s',
+            'request_date' => 'required|date',
             'status' => ['required', Rule::in(['pending_sample', 'sample_collected', 'processing', 'cancelled'])],
             'notes_from_doctor' => 'nullable|string',
             'requested_tests' => 'required|array|min:1',
@@ -178,7 +178,7 @@ class LabTestRequestController extends Controller
             'results.*.is_abnormal' => 'nullable|boolean',
             'results.*.notes' => 'nullable|string',
             'notes_from_lab' => 'nullable|string',
-            'result_date' => 'required|date_format:Y-m-d H:i:s',
+            'result_date' => 'required|date',
         ]);
 
         DB::beginTransaction();

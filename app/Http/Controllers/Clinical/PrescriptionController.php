@@ -44,13 +44,14 @@ class PrescriptionController extends Controller
         if ($treatmentPlanId && (!$treatmentPlan || $treatmentPlan->patient_id !== $patient->id)) {
             return redirect()->route('clinical.prescriptions.index', $patient->id)->with('error', 'Invalid treatment plan specified.');
         }
-
+        $treatmentPlans = $patient->treatmentPlans()->orderBy('start_date', 'desc')->pluck('diagnosis', 'id');
         $doctors = User::whereHas('role', fn($q) => $q->where('name', 'Doctor'))->orderBy('name')->pluck('name', 'id');
         $medications = Medication::orderBy('name')->get(['id', 'name', 'strength', 'form']); // For dropdown/autocomplete
         $statuses = ['pending' => 'Pending', 'dispensed' => 'Dispensed', 'cancelled' => 'Cancelled'];
 
 
-        return view('clinical.prescriptions.create', compact('patient', 'treatmentPlan', 'doctors', 'medications', 'statuses'));
+        return view('clinical.prescriptions.create', compact('patient', 'treatmentPlan', 'treatmentPlans', 'doctors', 'medications', 'statuses'));
+
     }
 
     public function store(Request $request, Patient $patient)
@@ -59,7 +60,7 @@ class PrescriptionController extends Controller
         $request->validate([
             'treatment_plan_id' => 'nullable|exists:treatment_plans,id,patient_id,' . $patient->id,
             // 'doctor_id' => 'required|exists:users,id', // Should be auth()->id() if doctor is creating
-            'prescription_date' => 'required|date_format:Y-m-d H:i:s',
+            'prescription_date' => 'required|date',
             'status' => ['required', Rule::in(['pending', 'dispensed', 'cancelled'])],
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
@@ -142,7 +143,7 @@ class PrescriptionController extends Controller
         $request->validate([
             'treatment_plan_id' => 'nullable|exists:treatment_plans,id,patient_id,' . $patient->id,
             'doctor_id' => 'required|exists:users,id', // Keep original doctor or allow change by admin
-            'prescription_date' => 'required|date_format:Y-m-d H:i:s',
+            'prescription_date' => 'required|date',
             'status' => ['required', Rule::in(['pending', 'dispensed', 'cancelled'])],
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
