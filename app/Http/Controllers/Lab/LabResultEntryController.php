@@ -15,7 +15,7 @@ class LabResultEntryController extends Controller
     {
         // $this->authorize('viewAnyResults', LabTestRequest::class); // Policy for lab technician
         $query = LabTestRequest::with(['patient:id,full_name,file_number', 'doctor:id,name'])
-                               ->whereIn('status', ['sample_collected', 'processing']) // Show requests ready for results
+                               ->whereIn('status', ['sample_collected', 'processing', 'pending_sample']) // Show requests ready for results
                                ->latest('request_date');
 
         if ($request->filled('patient_name')) {
@@ -44,7 +44,7 @@ class LabResultEntryController extends Controller
     public function showEntryForm(LabTestRequest $labRequest) // Renamed for clarity
     {
         // $this->authorize('enterResults', $labRequest);
-        if (!in_array($labRequest->status, ['sample_collected', 'processing'])) {
+        if (!in_array($labRequest->status, ['sample_collected', 'processing','pending_sample'])) {
             return redirect()->route('lab.results.index')
                             ->with('warning', 'Results can only be entered for requests with "Sample Collected" or "Processing" status.');
         }
@@ -67,7 +67,7 @@ class LabResultEntryController extends Controller
             'results.*.is_abnormal' => 'nullable|boolean',
             'results.*.notes' => 'nullable|string', // Per item notes
             'notes_from_lab' => 'nullable|string', // Overall notes from lab for this request
-            'result_date' => 'required|date_format:Y-m-d H:i:s', // Or just date
+            'result_date' => 'required|date', // Or just date
         ]);
 
         DB::beginTransaction();
