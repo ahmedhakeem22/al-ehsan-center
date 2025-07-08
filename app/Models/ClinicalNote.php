@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ClinicalNoteTypeEnum; 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,6 +26,7 @@ class ClinicalNote extends Model
     ];
 
     protected $casts = [
+        'note_type' => ClinicalNoteTypeEnum::class,
         'is_actioned' => 'boolean',
         'actioned_at' => 'datetime',
     ];
