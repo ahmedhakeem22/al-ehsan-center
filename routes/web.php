@@ -31,12 +31,8 @@ use App\Http\Controllers\Lab\LabResultEntryController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', function () {
-  return view('welcome');
-});
-
 // تعديل هنا ليشير إلى DashboardController
-Route::get('/dashboard', [DashboardController::class, 'index'])
+Route::get('/', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -108,7 +104,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Patient CRUD Routes
-    Route::resource('patients', PatientController::class); // <<< إضافة هذا
+    Route::resource('patients', PatientController::class); 
 
     // Patient Media Routes (Nested under patient)
     Route::name('media.')->prefix('patients/{patient}/media')->group(function () {
@@ -142,7 +138,7 @@ Route::middleware(['auth'])->group(function () {
 
 
   // Clinical Routes (Nested under patient)
-  Route::name('clinical.')->prefix('clinical/patients/{patient}')->group(function () {
+  Route::name('clinical.')->prefix('patients/{patient}/clinical')->group(function () {
     Route::resource('notes', ClinicalNoteController::class);
     Route::post('notes/{note}/action', [ClinicalNoteController::class, 'markAsActioned'])->name('notes.action');
     Route::resource('treatment-plans', TreatmentPlanController::class)->names('treatment_plans');

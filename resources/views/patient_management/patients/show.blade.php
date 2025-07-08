@@ -1,4 +1,8 @@
-@php $page = 'patient-profile'; @endphp
+@php
+    $page = 'patient-profile';
+    // It's good practice to import the Enum here, especially if you need its methods elsewhere.
+    use App\Enums\ClinicalNoteTypeEnum;
+@endphp
 @extends('layout.mainlayout')
 @section('title', 'ملف المريض: ' . $patient->full_name)
 
@@ -28,17 +32,18 @@
                                 <div class="col-md">
                                     <h4 class="mt-2">{{ $patient->full_name }}</h4>
                                     <p class="text-muted">رقم الملف: {{ $patient->file_number }}</p>
-  <p>
-        العمر التقريبي: {{ $patient->approximate_age ?: 'غير محدد' }} |
-        النوع:
-        @if($patient->gender == 'male') ذكر
-        @elseif($patient->gender == 'female') أنثى
-        @elseif($patient->gender == 'other') آخر
-        @elseif($patient->gender == 'unknown') غير معروف
-        @else غير محدد
-        @endif
-        | المحافظة: {{ $patient->province ?: 'غير محدد' }}
-    </p>                                    <p>تاريخ الوصول: {{ $patient->arrival_date ? \Carbon\Carbon::parse($patient->arrival_date)->format('d/m/Y') : 'غير محدد' }}</p>
+                                    <p>
+                                        العمر التقريبي: {{ $patient->approximate_age ?: 'غير محدد' }} |
+                                        النوع:
+                                        @if($patient->gender == 'male') ذكر
+                                        @elseif($patient->gender == 'female') أنثى
+                                        @elseif($patient->gender == 'other') آخر
+                                        @elseif($patient->gender == 'unknown') غير معروف
+                                        @else غير محدد
+                                        @endif
+                                        | المحافظة: {{ $patient->province ?: 'غير محدد' }}
+                                    </p>
+                                    <p>تاريخ الوصول: {{ $patient->arrival_date ? \Carbon\Carbon::parse($patient->arrival_date)->format('d/m/Y') : 'غير محدد' }}</p>
                                     <p>الحالة الحالية:
                                         @if($patient->status == 'active') <span class="badge bg-success">نشط</span>
                                         @elseif($patient->status == 'discharged') <span class="badge bg-warning">خروج</span>
@@ -93,7 +98,8 @@
 
                                 <!-- Assessments Tab -->
                                 <div id="pat_assessments" class="tab-pane fade">
-<a href="{{ route('assessment.functional.create', $patient->id) }}" class="btn btn-info btn-sm mb-3">إضافة تقييم جديد</a>                                    @if($patient->assessments->count() > 0)
+                                    <a href="{{ route('assessment.functional.create', $patient->id) }}" class="btn btn-info btn-sm mb-3">إضافة تقييم جديد</a>
+                                    @if($patient->assessments->count() > 0)
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
@@ -111,7 +117,8 @@
                                                     <td>{{ $assessment->assessor->name ?? 'غير محدد' }}</td>
                                                     <td>{{ $assessment->overall_improvement_percentage ?? 'N/A' }}%</td>
                                                     <td>
-<a href="{{ route('assessment.functional.show', [$patient->id, $assessment->id]) }}" class="btn btn-sm btn-outline-primary">عرض</a>                                                        {{-- <a href="{{ route('assessments.edit', [$patient->id, $assessment->id]) }}" class="btn btn-sm btn-outline-secondary">تعديل</a> --}}
+                                                        <a href="{{ route('assessment.functional.show', [$patient->id, $assessment->id]) }}" class="btn btn-sm btn-outline-primary">عرض</a>
+                                                        <a href="{{ route('assessment.functional.edit', [$patient->id, $assessment->id]) }}" class="btn btn-sm btn-outline-secondary">تعديل</a>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -121,7 +128,6 @@
                                     @else
                                         <p>لا توجد تقييمات مسجلة لهذا المريض.</p>
                                     @endif
-                                    {{-- TODO: Add chart for improvement trend --}}
                                 </div>
                                 <!-- /Assessments Tab -->
 
@@ -129,7 +135,7 @@
                                 <div id="pat_treatment" class="tab-pane fade">
                                     {{-- Treatment Plans --}}
                                     <h5>الخطط العلاجية</h5>
-                                     <a href="{{-- route('clinical.treatment_plans.create', $patient->id) --}}" class="btn btn-info btn-sm mb-3 disabled">إضافة خطة علاجية (قيد التطوير)</a>
+                                     <a href="{{ route('clinical.treatment_plans.create', $patient->id) }}" class="btn btn-info btn-sm mb-3">إضافة خطة علاجية</a>
                                     @if($patient->treatmentPlans->count() > 0)
                                     <div class="table-responsive mb-4">
                                         <table class="table table-striped">
@@ -150,7 +156,7 @@
                                                     <td>{{ Str::limit($plan->diagnosis, 50) }}</td>
                                                     <td>{{ $plan->status }}</td>
                                                     <td>
-                                                         <a href="{{-- route('clinical.treatment_plans.show', [$patient->id, $plan->id]) --}}" class="btn btn-sm btn-outline-primary disabled">عرض</a>
+                                                         <a href="{{ route('clinical.treatment_plans.show', [$patient->id, $plan->id]) }}" class="btn btn-sm btn-outline-primary">عرض</a>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -163,7 +169,7 @@
 
                                     {{-- Prescriptions --}}
                                     <h5>الوصفات الطبية</h5>
-                                    <a href="{{-- route('clinical.prescriptions.create', $patient->id) --}}" class="btn btn-warning btn-sm mb-3 disabled">إضافة وصفة طبية (قيد التطوير)</a>
+                                    <a href="{{ route('clinical.prescriptions.create', $patient->id) }}" class="btn btn-warning btn-sm mb-3">إضافة وصفة طبية</a>
                                      @if($patient->prescriptions->count() > 0)
                                     <div class="table-responsive">
                                         <table class="table table-striped">
@@ -182,7 +188,7 @@
                                                     <td>{{ $prescription->doctor->name ?? 'غير محدد' }}</td>
                                                     <td>{{ $prescription->status }}</td>
                                                     <td>
-                                                        <a href="{{-- route('clinical.prescriptions.show', [$patient->id, $prescription->id]) --}}" class="btn btn-sm btn-outline-primary disabled">عرض</a>
+                                                        <a href="{{ route('clinical.prescriptions.show', [$patient->id, $prescription->id]) }}" class="btn btn-sm btn-outline-primary">عرض</a>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -197,7 +203,7 @@
 
                                 <!-- Lab Tests Tab -->
                                 <div id="pat_lab_tests" class="tab-pane fade">
-                                     <a href="{{-- route('clinical.lab_tests.request', $patient->id) --}}" class="btn btn-secondary btn-sm mb-3 disabled">طلب فحص مخبري (قيد التطوير)</a>
+                                     <a href="{{ route('clinical.lab_requests.create', $patient->id) }}" class="btn btn-secondary btn-sm mb-3">طلب فحص مخبري</a>
                                     @if($patient->labTestRequests->count() > 0)
                                     <div class="table-responsive">
                                         <table class="table table-striped">
@@ -218,7 +224,7 @@
                                                     <td>{{ $labRequest->status }}</td>
                                                     <td>{{ $labRequest->result_date ? \Carbon\Carbon::parse($labRequest->result_date)->format('Y-m-d H:i') : 'لم تصدر' }}</td>
                                                     <td>
-                                                        <a href="{{-- route('clinical.lab_tests.show_request', [$patient->id, $labRequest->id]) --}}" class="btn btn-sm btn-outline-primary disabled">عرض</a>
+                                                        <a href="{{ route('clinical.lab_requests.show', [$patient->id, $labRequest->id]) }}" class="btn btn-sm btn-outline-primary">عرض</a>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -233,7 +239,7 @@
 
                                 <!-- Clinical Notes Tab -->
                                 <div id="pat_clinical_notes" class="tab-pane fade">
-                                    <a href="{{-- route('clinical.notes.create', $patient->id) --}}" class="btn btn-success btn-sm mb-3 disabled">إضافة ملاحظة جديدة (قيد التطوير)</a>
+                                    <a href="{{ route('clinical.notes.create', $patient->id) }}" class="btn btn-success btn-sm mb-3">إضافة ملاحظة جديدة</a>
                                     @if($patient->clinicalNotes->count() > 0)
                                     <div class="list-group">
                                         @foreach($patient->clinicalNotes()->orderBy('created_at', 'desc')->get() as $note)
@@ -241,7 +247,8 @@
                                             <div class="d-flex w-100 justify-content-between">
                                             <h6 class="mb-1">
                                                 {{ $note->author->name ?? 'غير معروف' }}
-                                                <small class="text-muted">({{ $note->author_role }}) - {{ \App\Enums\ClinicalNoteTypeEnum::from($note->note_type)->label() }}</small>
+                                                {{-- The correct way to display the Enum label after adding it to the model's $casts property --}}
+                                                <small class="text-muted">({{ $note->author_role }}) - {{ $note->note_type->label() }}</small>
                                             </h6>
                                             <small>{{ $note->created_at->diffForHumans() }}</small>
                                             </div>
@@ -283,6 +290,7 @@
         // Optional: Change hash on tab click
         $('.nav-tabs a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash;
+            $(window).scrollTop(0); // Optional: scroll to top when tab changes
         });
     });
 </script>
