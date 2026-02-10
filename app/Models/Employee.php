@@ -55,9 +55,16 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeShift::class, 'employee_id');
     }
-
-    public function attendance()
+    public function fingerprints()
     {
-        return $this->hasMany(Attendance::class, 'employee_id');
+        return $this->hasMany(EmployeeFingerprint::class, 'employee_id');
+    }
+
+    /**
+     * Get all of the attendance records for the Employee.
+     */
+    public function attendanceRecords()
+    {
+        return $this->hasMany(AttendanceRecord::class, 'employee_id');
     }
 }

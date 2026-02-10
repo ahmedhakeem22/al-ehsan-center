@@ -65,5 +65,3 @@
 <!-- Custom JS -->
 <script src="{{ URL::asset('/assets/js/app.js') }}"></script>
 
-
-@stack('scripts')

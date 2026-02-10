@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\HR\AttendanceController;
-use App\Http\Controllers\HR\AttendanceRequestWebController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController; // <<< إضافة هذا
 use App\Http\Controllers\Admin\UserController;
@@ -27,12 +25,19 @@ use App\Http\Controllers\Pharmacy\MedicationController;
 use App\Http\Controllers\Pharmacy\PharmacyDispenseController;
 use App\Http\Controllers\Lab\AvailableLabTestController;
 use App\Http\Controllers\Lab\LabResultEntryController;
+use App\Http\Controllers\Employee\AttendanceController as EmployeeAttendanceController;
+use App\Http\Controllers\Employee\BiometricController as EmployeeBiometricController;
+use App\Http\Controllers\HR\AttendanceController;
 
 use Illuminate\Support\Facades\Route;
 
 
+Route::get('/', function () {
+  return view('welcome');
+});
+
 // تعديل هنا ليشير إلى DashboardController
-Route::get('/', [DashboardController::class, 'index'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -104,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Patient CRUD Routes
-    Route::resource('patients', PatientController::class); 
+    Route::resource('patients', PatientController::class); // <<< إضافة هذا
 
     // Patient Media Routes (Nested under patient)
     Route::name('media.')->prefix('patients/{patient}/media')->group(function () {
@@ -138,7 +143,7 @@ Route::middleware(['auth'])->group(function () {
 
 
   // Clinical Routes (Nested under patient)
-  Route::name('clinical.')->prefix('patients/{patient}/clinical')->group(function () {
+  Route::name('clinical.')->prefix('clinical/patients/{patient}')->group(function () {
     Route::resource('notes', ClinicalNoteController::class);
     Route::post('notes/{note}/action', [ClinicalNoteController::class, 'markAsActioned'])->name('notes.action');
     Route::resource('treatment-plans', TreatmentPlanController::class)->names('treatment_plans');
@@ -151,7 +156,7 @@ Route::middleware(['auth'])->group(function () {
 
 
   // HR Routes
-  Route::middleware(['auth']) // Or a specific HR role middleware
+  Route::middleware(['auth', 'admin']) // Or a specific HR role middleware
       ->prefix('hr')->name('hr.')->group(function () {
     Route::resource('employees', EmployeeController::class);
     Route::name('documents.')->prefix('employees/{employee}/documents')->group(function () {
@@ -161,19 +166,17 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/{document}/download', [EmployeeDocumentController::class, 'download'])->name('download');
       Route::delete('/{document}', [EmployeeDocumentController::class, 'destroy'])->name('destroy');
     });
-      Route::get('/attendance-requests', [AttendanceRequestWebController::class, 'index'])->name('attendance-requests.index');
-      Route::get('/attendance-requests/{request}/generate-qr', [AttendanceRequestWebController::class, 'generateQrCode'])->name('attendance-requests.generate-qr');
-   // Attendance Management Routes
-  Route::get('attendance-reports/dashboard', [App\Http\Controllers\HR\AttendanceReportController::class, 'dashboard'])->name('attendance-reports.dashboard');
-Route::get('attendance-reports', [App\Http\Controllers\HR\AttendanceReportController::class, 'index'])->name('attendance-reports.index');
-Route::get('employees/{employee}/attendance-report', [App\Http\Controllers\HR\AttendanceReportController::class, 'show'])->name('employees.attendance-report');
-
+    Route::get('attendance/', [AttendanceController::class, 'index'])->name('attendance.index');
+    
+    // عرض تفاصيل سجلات موظف معين
+    Route::get('attendance/employee/{employee}', [AttendanceController::class, 'employeeDetails'])->name('employee.details');
+    
+    // مسار لعرض صفحة التقارير (يمكن إنشاؤه لاحقاً)
+    // Route::get('/reports', [HRAttendanceController::class, 'reports'])->name('reports');
     Route::resource('shift-definitions', ShiftDefinitionController::class)->names('shift_definitions');
     Route::get('employee-shifts/calendar', [EmployeeShiftController::class, 'calendarView'])->name('employee_shifts.calendar');
     Route::get('api/employee-shifts', [EmployeeShiftController::class, 'getShiftsApi'])->name('api.employee_shifts.index');
     Route::get('employee-shifts', [EmployeeShiftController::class, 'index'])->name('employee_shifts.index');
-    Route::get('employee-shifts/create', [EmployeeShiftController::class, 'create'])->name('employee_shifts.create');
-  Route::get('employee-shifts/{employeeShift}/edit', [EmployeeShiftController::class, 'edit'])->name('employee_shifts.edit');
     Route::post('employee-shifts', [EmployeeShiftController::class, 'store'])->name('employee_shifts.store');
     Route::put('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'update'])->name('employee_shifts.update');
     Route::delete('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'destroy'])->name('employee_shifts.destroy');
@@ -202,7 +205,41 @@ Route::get('employees/{employee}/attendance-report', [App\Http\Controllers\HR\At
       Route::post('/entry/{labRequest}', [LabResultEntryController::class, 'saveResults'])->name('save');
     });
   });
+ Route::prefix('employee')->name('employee.')->group(function () {
+    
+        // === Fingerprint Registration Routes ===
+        Route::prefix('fingerprint')->name('fingerprint.')->group(function () {
+            // عرض صفحة تسجيل البصمة لأول مرة
+            Route::get('/register', [EmployeeBiometricController::class, 'showRegistrationForm'])->name('register.form');
+            
+            // --- AJAX Routes ---
+            // طلب خيارات التسجيل من السيرفر
+            Route::post('/register/options', [EmployeeBiometricController::class, 'generateRegistrationOptions'])->name('register.options');
+            // إرسال بيانات البصمة للتحقق والحفظ
+            Route::post('/register/verify', [EmployeeBiometricController::class, 'verifyAndSaveRegistration'])->name('register.verify');
+            
+            // طلب خيارات المصادقة (للحضور/الانصراف)
+            Route::post('/auth/options', [EmployeeBiometricController::class, 'generateAuthenticationOptions'])->name('auth.options');
+        });
 
-}); // End of main auth middleware group
+        // === Attendance Routes ===
+        Route::prefix('attendance')->name('attendance.')->group(function () {
+            // الصفحة الرئيسية لتسجيل الحضور/الانصراف
+            Route::get('/', [EmployeeAttendanceController::class, 'index'])->name('index');
+            // عرض سجل الحضور الشخصي
+            Route::get('/history', [EmployeeAttendanceController::class, 'history'])->name('history');
+
+            // --- AJAX Routes ---
+            // مسار تسجيل الحضور
+            Route::post('/check-in', [EmployeeAttendanceController::class, 'checkIn'])->name('checkin');
+            // مسار تسجيل الانصراف
+            Route::post('/check-out', [EmployeeAttendanceController::class, 'checkOut'])->name('checkout');
+        });
+        
+        // يمكنك إضافة رابط للوحة تحكم الموظف هنا إذا كان موجوداً
+        // Route::get('/dashboard', function() { return view('employee.dashboard'); })->name('dashboard');
+
+    });
+});
 
 require __DIR__ . '/auth.php';

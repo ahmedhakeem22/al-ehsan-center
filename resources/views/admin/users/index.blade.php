@@ -36,8 +36,7 @@
                              <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
                         @endif
                         <div class="table-responsive">
-                            {{-- تم إزالة كلاس "datatable" من الجدول أدناه لتجنب التعارض --}}
-                            <table class="table table-hover table-center mb-0">
+                            <table class="table table-hover table-center mb-0 datatable">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -80,9 +79,8 @@
                                 </tbody>
                             </table>
                         </div>
-                         <div class="mt-4 d-flex justify-content-center">
-                            {{-- تم تعديل السطر التالي ليعرض أزرار التنقل بتصميم Bootstrap --}}
-                            {{ $users->links('pagination::bootstrap-5') }}
+                         <div class="mt-3">
+                            {{ $users->links() }}
                         </div>
                     </div>
                 </div>
