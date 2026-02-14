@@ -33,13 +33,13 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-  return view('welcome');
+  return redirect()->route('login');
 });
 
 // تعديل هنا ليشير إلى DashboardController
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+  ->middleware(['auth', 'verified'])
+  ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -157,89 +157,89 @@ Route::middleware(['auth'])->group(function () {
 
   // HR Routes
   Route::middleware(['auth', 'admin']) // Or a specific HR role middleware
-      ->prefix('hr')->name('hr.')->group(function () {
-    Route::resource('employees', EmployeeController::class);
-    Route::name('documents.')->prefix('employees/{employee}/documents')->group(function () {
-      Route::get('/', [EmployeeDocumentController::class, 'index'])->name('index');
-      Route::get('/create', [EmployeeDocumentController::class, 'create'])->name('create');
-      Route::post('/', [EmployeeDocumentController::class, 'store'])->name('store');
-      Route::get('/{document}/download', [EmployeeDocumentController::class, 'download'])->name('download');
-      Route::delete('/{document}', [EmployeeDocumentController::class, 'destroy'])->name('destroy');
+    ->prefix('hr')->name('hr.')->group(function () {
+      Route::resource('employees', EmployeeController::class);
+      Route::name('documents.')->prefix('employees/{employee}/documents')->group(function () {
+        Route::get('/', [EmployeeDocumentController::class, 'index'])->name('index');
+        Route::get('/create', [EmployeeDocumentController::class, 'create'])->name('create');
+        Route::post('/', [EmployeeDocumentController::class, 'store'])->name('store');
+        Route::get('/{document}/download', [EmployeeDocumentController::class, 'download'])->name('download');
+        Route::delete('/{document}', [EmployeeDocumentController::class, 'destroy'])->name('destroy');
+      });
+      Route::get('attendance/', [AttendanceController::class, 'index'])->name('attendance.index');
+
+      // عرض تفاصيل سجلات موظف معين
+      Route::get('attendance/employee/{employee}', [AttendanceController::class, 'employeeDetails'])->name('employee.details');
+
+      // مسار لعرض صفحة التقارير (يمكن إنشاؤه لاحقاً)
+      // Route::get('/reports', [HRAttendanceController::class, 'reports'])->name('reports');
+      Route::resource('shift-definitions', ShiftDefinitionController::class)->names('shift_definitions');
+      Route::get('employee-shifts/calendar', [EmployeeShiftController::class, 'calendarView'])->name('employee_shifts.calendar');
+      Route::get('api/employee-shifts', [EmployeeShiftController::class, 'getShiftsApi'])->name('api.employee_shifts.index');
+      Route::get('employee-shifts', [EmployeeShiftController::class, 'index'])->name('employee_shifts.index');
+      Route::post('employee-shifts', [EmployeeShiftController::class, 'store'])->name('employee_shifts.store');
+      Route::put('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'update'])->name('employee_shifts.update');
+      Route::delete('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'destroy'])->name('employee_shifts.destroy');
     });
-    Route::get('attendance/', [AttendanceController::class, 'index'])->name('attendance.index');
-    
-    // عرض تفاصيل سجلات موظف معين
-    Route::get('attendance/employee/{employee}', [AttendanceController::class, 'employeeDetails'])->name('employee.details');
-    
-    // مسار لعرض صفحة التقارير (يمكن إنشاؤه لاحقاً)
-    // Route::get('/reports', [HRAttendanceController::class, 'reports'])->name('reports');
-    Route::resource('shift-definitions', ShiftDefinitionController::class)->names('shift_definitions');
-    Route::get('employee-shifts/calendar', [EmployeeShiftController::class, 'calendarView'])->name('employee_shifts.calendar');
-    Route::get('api/employee-shifts', [EmployeeShiftController::class, 'getShiftsApi'])->name('api.employee_shifts.index');
-    Route::get('employee-shifts', [EmployeeShiftController::class, 'index'])->name('employee_shifts.index');
-    Route::post('employee-shifts', [EmployeeShiftController::class, 'store'])->name('employee_shifts.store');
-    Route::put('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'update'])->name('employee_shifts.update');
-    Route::delete('employee-shifts/{employeeShift}', [EmployeeShiftController::class, 'destroy'])->name('employee_shifts.destroy');
-  });
 
 
   // Pharmacy Routes
   Route::middleware(['auth', 'admin']) // Or a specific Pharmacy role middleware
-      ->prefix('pharmacy')->name('pharmacy.')->group(function () {
-    Route::resource('medications', MedicationController::class);
-    Route::name('dispense.')->prefix('dispense')->group(function () {
-      Route::get('/', [PharmacyDispenseController::class, 'index'])->name('index');
-      Route::get('/{prescription}', [PharmacyDispenseController::class, 'showPrescriptionForDispense'])->name('show');
-      Route::post('/{prescription}', [PharmacyDispenseController::class, 'processDispense'])->name('process');
+    ->prefix('pharmacy')->name('pharmacy.')->group(function () {
+      Route::resource('medications', MedicationController::class);
+      Route::name('dispense.')->prefix('dispense')->group(function () {
+        Route::get('/', [PharmacyDispenseController::class, 'index'])->name('index');
+        Route::get('/{prescription}', [PharmacyDispenseController::class, 'showPrescriptionForDispense'])->name('show');
+        Route::post('/{prescription}', [PharmacyDispenseController::class, 'processDispense'])->name('process');
+      });
     });
-  });
 
 
   // Lab Routes
   Route::middleware(['auth', 'admin']) // Or a specific Lab role middleware
-      ->prefix('lab')->name('lab.')->group(function () {
-    Route::resource('available-tests', AvailableLabTestController::class)->names('available_tests');
-    Route::name('results.')->prefix('results')->group(function () {
-      Route::get('/', [LabResultEntryController::class, 'index'])->name('index');
-      Route::get('/entry/{labRequest}', [LabResultEntryController::class, 'showEntryForm'])->name('entry_form');
-      Route::post('/entry/{labRequest}', [LabResultEntryController::class, 'saveResults'])->name('save');
+    ->prefix('lab')->name('lab.')->group(function () {
+      Route::resource('available-tests', AvailableLabTestController::class)->names('available_tests');
+      Route::name('results.')->prefix('results')->group(function () {
+        Route::get('/', [LabResultEntryController::class, 'index'])->name('index');
+        Route::get('/entry/{labRequest}', [LabResultEntryController::class, 'showEntryForm'])->name('entry_form');
+        Route::post('/entry/{labRequest}', [LabResultEntryController::class, 'saveResults'])->name('save');
+      });
     });
+  Route::prefix('employee')->name('employee.')->group(function () {
+
+    // === Fingerprint Registration Routes ===
+    Route::prefix('fingerprint')->name('fingerprint.')->group(function () {
+      // عرض صفحة تسجيل البصمة لأول مرة
+      Route::get('/register', [EmployeeBiometricController::class, 'showRegistrationForm'])->name('register.form');
+
+      // --- AJAX Routes ---
+      // طلب خيارات التسجيل من السيرفر
+      Route::post('/register/options', [EmployeeBiometricController::class, 'generateRegistrationOptions'])->name('register.options');
+      // إرسال بيانات البصمة للتحقق والحفظ
+      Route::post('/register/verify', [EmployeeBiometricController::class, 'verifyAndSaveRegistration'])->name('register.verify');
+
+      // طلب خيارات المصادقة (للحضور/الانصراف)
+      Route::post('/auth/options', [EmployeeBiometricController::class, 'generateAuthenticationOptions'])->name('auth.options');
+    });
+
+    // === Attendance Routes ===
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+      // الصفحة الرئيسية لتسجيل الحضور/الانصراف
+      Route::get('/', [EmployeeAttendanceController::class, 'index'])->name('index');
+      // عرض سجل الحضور الشخصي
+      Route::get('/history', [EmployeeAttendanceController::class, 'history'])->name('history');
+
+      // --- AJAX Routes ---
+      // مسار تسجيل الحضور
+      Route::post('/check-in', [EmployeeAttendanceController::class, 'checkIn'])->name('checkin');
+      // مسار تسجيل الانصراف
+      Route::post('/check-out', [EmployeeAttendanceController::class, 'checkOut'])->name('checkout');
+    });
+
+    // يمكنك إضافة رابط للوحة تحكم الموظف هنا إذا كان موجوداً
+    // Route::get('/dashboard', function() { return view('employee.dashboard'); })->name('dashboard');
+
   });
- Route::prefix('employee')->name('employee.')->group(function () {
-    
-        // === Fingerprint Registration Routes ===
-        Route::prefix('fingerprint')->name('fingerprint.')->group(function () {
-            // عرض صفحة تسجيل البصمة لأول مرة
-            Route::get('/register', [EmployeeBiometricController::class, 'showRegistrationForm'])->name('register.form');
-            
-            // --- AJAX Routes ---
-            // طلب خيارات التسجيل من السيرفر
-            Route::post('/register/options', [EmployeeBiometricController::class, 'generateRegistrationOptions'])->name('register.options');
-            // إرسال بيانات البصمة للتحقق والحفظ
-            Route::post('/register/verify', [EmployeeBiometricController::class, 'verifyAndSaveRegistration'])->name('register.verify');
-            
-            // طلب خيارات المصادقة (للحضور/الانصراف)
-            Route::post('/auth/options', [EmployeeBiometricController::class, 'generateAuthenticationOptions'])->name('auth.options');
-        });
-
-        // === Attendance Routes ===
-        Route::prefix('attendance')->name('attendance.')->group(function () {
-            // الصفحة الرئيسية لتسجيل الحضور/الانصراف
-            Route::get('/', [EmployeeAttendanceController::class, 'index'])->name('index');
-            // عرض سجل الحضور الشخصي
-            Route::get('/history', [EmployeeAttendanceController::class, 'history'])->name('history');
-
-            // --- AJAX Routes ---
-            // مسار تسجيل الحضور
-            Route::post('/check-in', [EmployeeAttendanceController::class, 'checkIn'])->name('checkin');
-            // مسار تسجيل الانصراف
-            Route::post('/check-out', [EmployeeAttendanceController::class, 'checkOut'])->name('checkout');
-        });
-        
-        // يمكنك إضافة رابط للوحة تحكم الموظف هنا إذا كان موجوداً
-        // Route::get('/dashboard', function() { return view('employee.dashboard'); })->name('dashboard');
-
-    });
 });
 
 require __DIR__ . '/auth.php';
